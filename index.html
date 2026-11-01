@@ -438,6 +438,17 @@ $('#menu').onclick = e => { const b = e.target.closest('[data-share]'); if(b){ c
     if(k === 'text') copy(shareText(), 'Rezept kopiert'); else copy(`${cur.t}: ${APP_URL}#${cur.id}`, 'Link kopiert'); }
   menu(false); };
 document.addEventListener('click', e => { if(!e.target.closest('.share')) menu(false); });
+// keep the screen on while a recipe is open
+let wakeLock = null;
+async function keepAwake(on){
+  try {
+    if(on && 'wakeLock' in navigator && document.visibilityState === 'visible' && !wakeLock){
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } else if(!on && wakeLock){ await wakeLock.release(); wakeLock = null; }
+  } catch(e){ wakeLock = null; }
+}
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && $('#sheet').classList.contains('on')) keepAwake(true); });
 // recipe sheet
 let lastHash = '';
 function openRecipe(id){
@@ -451,10 +462,10 @@ function openRecipe(id){
   $('#st').textContent = r.t;
   const hero = $('#shero'); hero.hidden = !r.img; if(r.img){ hero.src = imgSrc(r); hero.alt = r.t; }
   renderBody();
-  $('#sbody').scrollTop = 0; sheet.classList.add('on'); $('#scrim').classList.add('on'); $('#sclose').focus();
+  $('#sbody').scrollTop = 0; sheet.classList.add('on'); $('#scrim').classList.add('on'); keepAwake(true); $('#sclose').focus();
   return true;
 }
-function closeSheet(){ $('#sheet').classList.remove('on'); $('#scrim').classList.remove('on'); $('#filters').classList.remove('on'); }
+function closeSheet(){ keepAwake(false); $('#sheet').classList.remove('on'); $('#scrim').classList.remove('on'); $('#filters').classList.remove('on'); }
 function closeRecipe(){ const wasOpen = $('#sheet').classList.contains('on'); closeSheet();
   if(wasOpen){ if(lastHash) location.hash = lastHash; else history.replaceState(null,'',location.pathname+location.search); } }
 $('#grid').onclick = e => { const c = e.target.closest('.card'); if(!c) return; lastHash = location.hash.slice(1); location.hash = c.dataset.id; };
