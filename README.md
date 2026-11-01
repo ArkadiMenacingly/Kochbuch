@@ -1,4 +1,3 @@
 # Kochbuch Micky & Nils
 
-Die Kochbuch-App (eine einzige Datei: `index.html`).
-Jede Änderung auf `main` wird von Netlify automatisch veröffentlicht: https://kochbuch-micky-nils.netlify.app
+Rezept-App (eine Datei: `index.html`). Wird bei jedem Push auf `main` automatisch von Netlify veröffentlicht: https://kochbuch-micky-nils.netlify.app
